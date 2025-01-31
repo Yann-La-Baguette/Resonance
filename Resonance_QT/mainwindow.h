@@ -3,6 +3,15 @@
 
 #include <QMainWindow>
 
+#include "qrcodegen.hpp"
+
+#include <iostream>
+#include <QImage>
+#include <QPainter>
+
+
+using namespace std;
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -16,6 +25,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+    void generateQRCode(const QString &text);
 
 private:
     Ui::MainWindow *ui;

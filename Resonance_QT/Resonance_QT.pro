@@ -10,10 +10,12 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    qrcodegen.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    qrcodegen.hpp
 
 FORMS += \
     mainwindow.ui
