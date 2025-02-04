@@ -7,7 +7,16 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    generateQRCode("https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXA%3D");
+    QMap<QString, QString> ips = getIPAddresses();
+
+    if (!ips.isEmpty()) {
+        for (const QString &key : ips.keys()) {
+            qDebug() << key << "IP:" << ips[key];
+            generateQRCode(key, ips[key]);
+        }
+    } else {
+        qDebug() << "Aucune adresse IP trouvée.";
+    }
 }
 
 MainWindow::~MainWindow()
@@ -15,16 +24,16 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::generateQRCode(const QString &text) {
+void MainWindow::generateQRCode(QString name, const QString &text) {
     // Générer le QR code avec la bibliothèque
     qrcodegen::QrCode qr = qrcodegen::QrCode::encodeText(text.toUtf8().constData(), qrcodegen::QrCode::Ecc::LOW);
 
     // Déterminer la taille du QR code en pixels
     int size = qr.getSize();
-    int scale = 500 / size; // On adapte la taille pour que l'image fasse 500x500 pixels
+    int scale = 300 / size; // On adapte la taille pour que l'image fasse 500x500 pixels
 
     // Créer une image à partir du QR code avec une taille plus grande
-    QImage image(500, 500, QImage::Format_RGB888);
+    QImage image(300, 300, QImage::Format_RGB888);
     QPainter painter(&image);
     painter.fillRect(image.rect(), Qt::white);  // Fond blanc
     painter.setPen(Qt::NoPen);  // Pas de bordure autour des modules
@@ -40,6 +49,62 @@ void MainWindow::generateQRCode(const QString &text) {
         }
     }
 
+    name = name + ".png";
     // Sauvegarder l'image ou l'afficher
-    image.save("qrcode_high_res.png");
+    image.save(name);
 }
+
+QMap<QString, QString> MainWindow::getIPAddresses() {
+    QMap<QString, QString> ipAddresses;
+
+    // Liste des interfaces réseau
+    QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
+
+    for (const QNetworkInterface &interface : interfaces) {
+        // Vérifie si l'interface est active et non une loopback
+        if (interface.flags().testFlag(QNetworkInterface::IsUp) &&
+            interface.flags().testFlag(QNetworkInterface::IsRunning) &&
+            !interface.flags().testFlag(QNetworkInterface::IsLoopBack)) {
+
+            // Vérifie si l'interface est WiFi ou Ethernet
+            QString interfaceType;
+            if (interface.name().contains("wlan", Qt::CaseInsensitive) ||
+                interface.humanReadableName().contains("Wi-Fi", Qt::CaseInsensitive)) {
+                interfaceType = "WiFi";
+            } else if (interface.name().contains("eth", Qt::CaseInsensitive) ||
+                       interface.humanReadableName().contains("Ethernet", Qt::CaseInsensitive)) {
+                interfaceType = "Ethernet";
+            } else {
+                continue; // Ignore les autres interfaces
+            }
+
+            // Récupère les adresses IP de l'interface
+            for (const QNetworkAddressEntry &entry : interface.addressEntries()) {
+                if (entry.ip().protocol() == QAbstractSocket::IPv4Protocol) {
+                    ipAddresses[interfaceType] = entry.ip().toString();
+                }
+            }
+        }
+    }
+
+    return ipAddresses;
+}
+
+void MainWindow::on_comboBox_activated(int index)
+{
+    QPixmap pixmapWiFi("./WiFi.png");
+    QPixmap pixmapEthernet("./Ethernet.png");
+    switch (index) {
+    case 0: // Ethernet
+        ui->QRCodeLabel->setPixmap(pixmapEthernet);
+        break;
+
+    case 1: // Wi-Fi
+        ui->QRCodeLabel->setPixmap(pixmapWiFi);
+        break;
+
+    default:
+        break;
+    }
+}
+
