@@ -1,0 +1,42 @@
+# Gradle files
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
+local.properties
+.idea/
+*.iml
+
+# Log files
+*.log
+
+# Android Studio
+.cxx/
+captures/
+.externalNativeBuild/
+*.hprof
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Kotlin/Jetpack Compose
+*.kotlin_module
+
+# Generated files
+generated/
+output.json
+
+# Misc
+*.apk
+*.ap_
+*.dex
+*.class
+
+# Crashlytics/Firebase
+crashlytics-build.properties
+
+# NDK
+obj/
